@@ -18,32 +18,54 @@ namespace SearchService.Services
             _students = database.GetCollection<Student>("students");
         }
 
-        // Obtener todos los estudiantes
-        public async Task<List<Student>> GetAllStudentsAsync() =>
-            await _students.Find(student => true).ToListAsync();
-
-        // Obtener un estudiante por su ObjectId
-        public async Task<Student> GetStudentByIdAsync(ObjectId id)
+        // 1. Buscar estudiante por ID o parte del nombre
+        public async Task<List<Student>> GetStudentByIdOrNameAsync(string idOrName)
         {
-            return await _students.Find(student => student.Id == id).FirstOrDefaultAsync();
+            var filter = Builders<Student>.Filter.Or(
+                Builders<Student>.Filter.Eq(s => s.Id, ObjectId.TryParse(idOrName, out ObjectId objectId) ? objectId : ObjectId.Empty),
+                Builders<Student>.Filter.Regex(s => s.Name, new BsonRegularExpression(idOrName, "i"))
+            );
+
+            return await _students.Find(filter).ToListAsync();
         }
 
-        // Obtener estudiantes por una restricción específica
-        public async Task<List<Student>> GetStudentsByRestriction(string restrictionReason)
+        // 2. Buscar estudiantes que poseen una restricción específica
+        public async Task<List<StudentRestrictionResult>> GetStudentsByRestriction(string restrictionReason)
         {
-            if (string.IsNullOrEmpty(restrictionReason))
-                return new List<Student>();
+            var filter = Builders<Student>.Filter.ElemMatch(s => s.Restrictions,
+                r => r.Reason.ToLower().Contains(restrictionReason.ToLower()));
 
-            return await _students.Find(student => student.Restrictions.Any(r => r.Reason.Contains(restrictionReason))).ToListAsync();
+            var students = await _students.Find(filter).ToListAsync();
+
+            var result = new List<StudentRestrictionResult>();
+            foreach (var student in students)
+            {
+                foreach (var restriction in student.Restrictions)
+                {
+                    if (restriction.Reason.ToLower().Contains(restrictionReason.ToLower()))
+                    {
+                        result.Add(new StudentRestrictionResult
+                        {
+                            StudentId = student.Id.ToString(),
+                            Name = student.Name,
+                            Email = student.Email,
+                            RestrictionId = restriction.RestrictionId,
+                            RestrictionReason = restriction.Reason,
+                            CreationDate = restriction.CreationDate
+                        });
+                    }
+                }
+            }
+            return result;
         }
 
-        // Obtener estudiantes dentro de un rango de notas
+        // 3. Buscar estudiantes por rango de notas
         public async Task<List<Student>> GetStudentsByGradeRange(double min, double max)
         {
-            if (min < 0 || max < 0 || min > max)
-                return new List<Student>();
+            var filter = Builders<Student>.Filter.ElemMatch(s => s.Grades,
+                g => g.GradeValue >= min && g.GradeValue <= max);
 
-            return await _students.Find(student => student.Grades.Any(g => g.GradeValue >= min && g.GradeValue <= max)).ToListAsync();
+            return await _students.Find(filter).ToListAsync();
         }
     }
 }
