@@ -24,7 +24,7 @@ namespace SearchService.Controllers
             try
             {
                 var students = await _mongoDBService.GetAllStudentsAsync();
-                if (students == null || students.Count == 0)
+                if (students.Count == 0)
                     return NotFound(new { message = "No se encontraron estudiantes" });
 
                 return Ok(students);
