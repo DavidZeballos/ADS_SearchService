@@ -16,6 +16,36 @@ namespace SearchService.Services
             _students = database.GetCollection<Student>("students");
         }
 
+        // Obtener estudiantes por su UUID o parte del nombre
+        public async Task<List<Student>> GetStudentByIdOrNameAsync(string query)
+        {
+            try
+            {
+                FilterDefinition<Student> filter;
+
+                // Intentamos parsear el query como un Guid (UUID)
+                if (Guid.TryParse(query, out Guid uuid))
+                {
+                    // Si es un UUID válido, filtramos por el campo Id (Guid)
+                    filter = Builders<Student>.Filter.Eq(s => s.Id, uuid);
+                }
+                else
+                {
+                    // Si no es un UUID, filtramos por coincidencias en el nombre usando regex (insensible a mayúsculas)
+                    filter = Builders<Student>.Filter.Regex("Name", new BsonRegularExpression(query, "i"));
+                }
+
+                // Ejecutamos la consulta
+                var students = await _students.Find(filter).ToListAsync();
+
+                return students;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Error fetching student by UUID or name", ex);
+            }
+        }
+
         // Obtener todos los estudiantes
         public async Task<List<Student>> GetAllStudentsAsync()
         {
@@ -26,32 +56,6 @@ namespace SearchService.Services
             catch (Exception ex)
             {
                 throw new Exception("Error fetching all students", ex);
-            }
-        }
-
-        // Obtener un estudiante por su ObjectId o nombre parcial
-        public async Task<List<Student>> GetStudentByIdOrNameAsync(string query)
-        {
-            try
-            {
-                // Crear filtro para buscar por ObjectId si el query es válido, o por nombre con expresión regular
-                var filter = Builders<Student>.Filter.Empty;
-                if (ObjectId.TryParse(query, out var objectId))
-                {
-                    // Filtro para ObjectId
-                    filter = Builders<Student>.Filter.Eq("_id", objectId);
-                }
-                else
-                {
-                    // Filtro para búsqueda por nombre usando regex (insensible a mayúsculas/minúsculas)
-                    filter = Builders<Student>.Filter.Regex("Name", new BsonRegularExpression(query, "i"));
-                }
-
-                return await _students.Find(filter).ToListAsync();
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error fetching student by ID or name", ex);
             }
         }
 
