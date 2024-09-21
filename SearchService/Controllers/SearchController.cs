@@ -1,3 +1,4 @@
+using MongoDB.Bson;
 using Microsoft.AspNetCore.Mvc;
 using SearchService.Services;
 using SearchService.Models;
@@ -44,7 +45,11 @@ namespace SearchService.Controllers
                 if (string.IsNullOrEmpty(id))
                     return BadRequest("El ID del estudiante es requerido");
 
-                var student = await _mongoDBService.GetStudentByIdAsync(id);
+                // Convertir el string 'id' a ObjectId
+                if (!ObjectId.TryParse(id, out ObjectId objectId))
+                    return BadRequest("ID no válido.");
+
+                var student = await _mongoDBService.GetStudentByIdAsync(objectId);
                 if (student == null)
                     return NotFound(new { message = "Estudiante no encontrado" });
 
