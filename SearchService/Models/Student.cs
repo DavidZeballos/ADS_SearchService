@@ -1,20 +1,17 @@
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
-using System;
-using System.Collections.Generic;
-
 
 public class Student
 {
     [BsonId]
-    [BsonRepresentation(BsonType.ObjectId)]
-    public ObjectId Id { get; set; }
+    [BsonRepresentation(BsonType.String)]  // Usamos BsonType.String para representar el GUID como una cadena
+    public Guid Id { get; set; } = Guid.NewGuid(); // Generar un UUID v4 por defecto
 
     [BsonElement("Name")]
     public string Name { get; set; } = string.Empty;
 
     [BsonElement("Email")]
-    public string Email { get; set; } = string.Empty;  // Campo Email agregado
+    public string Email { get; set; } = string.Empty;
 
     [BsonElement("Grades")]
     public List<Grade> Grades { get; set; } = new();
@@ -26,7 +23,8 @@ public class Student
 public class Grade
 {
     [BsonElement("GradeId")]
-    public string GradeId { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)] // Representar GUID como una cadena
+    public Guid GradeId { get; set; } = Guid.NewGuid(); // Generar un UUID v4 por defecto
 
     [BsonElement("Course")]
     public string CourseName { get; set; } = string.Empty;
@@ -44,7 +42,8 @@ public class Grade
 public class Restriction
 {
     [BsonElement("RestrictionId")]
-    public string RestrictionId { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)] // Representar GUID como una cadena
+    public Guid RestrictionId { get; set; } = Guid.NewGuid(); // Generar un UUID v4 por defecto
 
     [BsonElement("Reason")]
     public string Reason { get; set; } = string.Empty;
@@ -56,7 +55,8 @@ public class Restriction
 public class StudentRestrictionResult
 {
     [BsonElement("StudentId")]
-    public string StudentId { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)] // Representar GUID como una cadena
+    public Guid StudentId { get; set; } = Guid.NewGuid();
 
     [BsonElement("Name")]
     public string Name { get; set; } = string.Empty;
@@ -65,7 +65,8 @@ public class StudentRestrictionResult
     public string Email { get; set; } = string.Empty;
 
     [BsonElement("RestrictionId")]
-    public string RestrictionId { get; set; } = string.Empty;
+    [BsonRepresentation(BsonType.String)] // Representar GUID como una cadena
+    public Guid RestrictionId { get; set; } = Guid.NewGuid();
 
     [BsonElement("RestrictionReason")]
     public string RestrictionReason { get; set; } = string.Empty;

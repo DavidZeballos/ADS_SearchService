@@ -1,9 +1,4 @@
-using MongoDB.Bson;
 using Microsoft.AspNetCore.Mvc;
-using SearchService.Services;
-using SearchService.Models;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace SearchService.Controllers
 {
@@ -36,20 +31,16 @@ namespace SearchService.Controllers
             }
         }
 
-        // Buscar todas las calificaciones y restricciones de un estudiante por ID
+        // Buscar todas las calificaciones y restricciones de un estudiante por UUID (GUID)
         [HttpGet("student/{id}")]
         public async Task<ActionResult<Student>> GetStudentById(string id)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
-                    return BadRequest("El ID del estudiante es requerido");
+                if (!Guid.TryParse(id, out Guid studentId))
+                    return BadRequest("El ID del estudiante es inválido");
 
-                // Convertir el string 'id' a ObjectId
-                if (!ObjectId.TryParse(id, out ObjectId objectId))
-                    return BadRequest("ID no válido.");
-
-                var student = await _mongoDBService.GetStudentByIdAsync(objectId);
+                var student = await _mongoDBService.GetStudentByIdAsync(studentId);
                 if (student == null)
                     return NotFound(new { message = "Estudiante no encontrado" });
 
