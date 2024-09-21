@@ -1,4 +1,9 @@
 using Microsoft.AspNetCore.Mvc;
+using SearchService.Services;
+using SearchService.Models;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace SearchService.Controllers
 {
@@ -17,81 +22,58 @@ namespace SearchService.Controllers
         [HttpGet("students")]
         public async Task<ActionResult<List<Student>>> GetAllStudents()
         {
-            try
-            {
-                var students = await _mongoDBService.GetAllStudentsAsync();
-                if (students.Count == 0)
-                    return NotFound(new { message = "No se encontraron estudiantes" });
+            var students = await _mongoDBService.GetAllStudentsAsync();
+            if (students.Count == 0)
+                return NotFound(new { message = "No se encontraron estudiantes" });
 
-                return Ok(students);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
-            }
+            return Ok(students);
         }
 
-        // Buscar todas las calificaciones y restricciones de un estudiante por UUID (GUID)
-        [HttpGet("student/{id}")]
-        public async Task<ActionResult<Student>> GetStudentById(string id)
+        // Buscar todas las calificaciones y restricciones de un estudiante por ID o nombre
+        [HttpGet("student/{idOrName}")]
+        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string idOrName)
         {
-            try
+            if (Guid.TryParse(idOrName, out Guid guid))
             {
-                if (!Guid.TryParse(id, out Guid studentId))
-                    return BadRequest("El ID del estudiante es inválido");
-
-                var student = await _mongoDBService.GetStudentByIdAsync(studentId);
+                var student = await _mongoDBService.GetStudentByIdAsync(guid);
                 if (student == null)
                     return NotFound(new { message = "Estudiante no encontrado" });
 
                 return Ok(student);
             }
-            catch (System.Exception ex)
+            else
             {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+                var students = await _mongoDBService.GetStudentsByNameAsync(idOrName);
+                if (students == null || students.Count == 0)
+                    return NotFound(new { message = "No se encontraron estudiantes con ese nombre" });
+
+                return Ok(students);
             }
         }
 
         // Buscar estudiantes que poseen una restricción específica (query parameter)
         [HttpGet("restriction")]
-        public async Task<ActionResult<List<Student>>> GetStudentsByRestriction([FromQuery] string restrictionReason)
+        public async Task<ActionResult<List<StudentRestrictionResult>>> GetStudentsByRestriction([FromQuery] string restrictionReason)
         {
-            try
-            {
-                if (string.IsNullOrEmpty(restrictionReason))
-                    return BadRequest("La razón de la restricción es requerida");
+            var students = await _mongoDBService.GetStudentsByRestriction(restrictionReason);
+            if (students == null || students.Count == 0)
+                return NotFound(new { message = "No se encontraron estudiantes con esa restricción" });
 
-                var students = await _mongoDBService.GetStudentsByRestriction(restrictionReason);
-                if (students == null || students.Count == 0)
-                    return NotFound(new { message = "No se encontraron estudiantes con esa restricción" });
-
-                return Ok(students);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
-            }
+            return Ok(students);
         }
 
         // Buscar estudiantes por un rango de notas (query parameters)
         [HttpGet("grades")]
         public async Task<ActionResult<List<Student>>> GetStudentsByGradeRange([FromQuery] double min, [FromQuery] double max)
         {
-            try
-            {
-                if (min < 0 || max < 0 || min > max)
-                    return BadRequest("Rango de notas no válido");
+            if (min < 0 || max < 0 || min > max)
+                return BadRequest("Rango de notas no válido");
 
-                var students = await _mongoDBService.GetStudentsByGradeRange(min, max);
-                if (students == null || students.Count == 0)
-                    return NotFound(new { message = "No se encontraron estudiantes en ese rango de notas" });
+            var students = await _mongoDBService.GetStudentsByGradeRange(min, max);
+            if (students == null || students.Count == 0)
+                return NotFound(new { message = "No se encontraron estudiantes en ese rango de notas" });
 
-                return Ok(students);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
-            }
+            return Ok(students);
         }
     }
 }

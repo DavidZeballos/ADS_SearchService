@@ -1,3 +1,4 @@
+using SearchService.Services;
 using SearchService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
