@@ -1,10 +1,10 @@
 public class Student
 {
-    public string Id { get; set; } = string.Empty; // Evitar nulos
-    public string Name { get; set; } = string.Empty; // Evitar nulos
-    public string Email { get; set; } = string.Empty; // Evitar nulos
-    public List<Grade> Grades { get; set; } = new(); // Inicializar lista vacía
-    public List<Restriction> Restrictions { get; set; } = new(); // Inicializar lista vacía
+    public string Id { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
+    public string Email { get; set; } = string.Empty;
+    public List<Grade> Grades { get; set; } = new();
+    public List<Restriction> Restrictions { get; set; } = new();
 }
 
 public class Grade
