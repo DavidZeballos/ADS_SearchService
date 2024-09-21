@@ -16,7 +16,7 @@ namespace SearchService.Services
             _students = database.GetCollection<Student>("students");
         }
 
-        // Obtener estudiantes por su UUID o parte del nombre
+        // Obtener estudiantes por UUID o parte del nombre
         public async Task<List<Student>> GetStudentByIdOrNameAsync(string query)
         {
             try
@@ -26,23 +26,26 @@ namespace SearchService.Services
                 // Intentamos parsear el query como un Guid (UUID)
                 if (Guid.TryParse(query, out Guid uuid))
                 {
-                    // Si es un UUID válido, filtramos por el campo Id (Guid)
+                    // Si es un UUID válido, filtramos por el campo Id
                     filter = Builders<Student>.Filter.Eq(s => s.Id, uuid);
                 }
                 else
                 {
-                    // Si no es un UUID, filtramos por coincidencias en el nombre usando regex (insensible a mayúsculas)
-                    filter = Builders<Student>.Filter.Regex("Name", new BsonRegularExpression(query, "i"));
+                    // Si no es un UUID, buscamos por coincidencias en el nombre usando regex
+                    filter = Builders<Student>.Filter.Regex(s => s.Name, new MongoDB.Bson.BsonRegularExpression(query, "i"));
                 }
 
-                // Ejecutamos la consulta
                 var students = await _students.Find(filter).ToListAsync();
+                if (students == null || students.Count == 0)
+                {
+                    throw new Exception($"No se encontraron estudiantes con el identificador '{query}'");
+                }
 
                 return students;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching student by UUID or name", ex);
+                throw new Exception($"Error fetching student by UUID or name: {query}. Detalle del error: {ex.Message}", ex);
             }
         }
 
@@ -51,11 +54,16 @@ namespace SearchService.Services
         {
             try
             {
-                return await _students.Find(student => true).ToListAsync();
+                var students = await _students.Find(student => true).ToListAsync();
+                if (students == null || students.Count == 0)
+                {
+                    throw new Exception("No se encontraron estudiantes en la base de datos.");
+                }
+                return students;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching all students", ex);
+                throw new Exception("Error fetching all students. Detalle del error: " + ex.Message, ex);
             }
         }
 
@@ -65,6 +73,11 @@ namespace SearchService.Services
             try
             {
                 var students = await _students.Find(student => student.Restrictions.Any(r => r.Reason.Contains(restrictionReason))).ToListAsync();
+
+                if (students == null || students.Count == 0)
+                {
+                    throw new Exception($"No se encontraron estudiantes con la restricción '{restrictionReason}'");
+                }
 
                 return students.Select(student => new StudentRestrictionResult
                 {
@@ -78,7 +91,7 @@ namespace SearchService.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching students by restriction", ex);
+                throw new Exception($"Error fetching students by restriction: '{restrictionReason}'. Detalle del error: {ex.Message}", ex);
             }
         }
 
@@ -87,11 +100,18 @@ namespace SearchService.Services
         {
             try
             {
-                return await _students.Find(student => student.Grades.Any(g => g.GradeValue >= min && g.GradeValue <= max)).ToListAsync();
+                var students = await _students.Find(student => student.Grades.Any(g => g.GradeValue >= min && g.GradeValue <= max)).ToListAsync();
+                
+                if (students == null || students.Count == 0)
+                {
+                    throw new Exception($"No se encontraron estudiantes con notas entre {min} y {max}");
+                }
+
+                return students;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching students by grade range", ex);
+                throw new Exception($"Error fetching students by grade range: {min} - {max}. Detalle del error: {ex.Message}", ex);
             }
         }
     }

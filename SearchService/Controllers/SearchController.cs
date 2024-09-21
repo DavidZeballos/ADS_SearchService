@@ -17,7 +17,26 @@ namespace SearchService.Controllers
             _mongoDBService = mongoDBService;
         }
 
-        // Buscar todos los estudiantes
+        // Buscar todas las calificaciones y restricciones de un estudiante por UUID o parte del nombre
+        [HttpGet("student/{query}")]
+        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string query)
+        {
+            try
+            {
+                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
+
+                if (students == null || students.Count == 0)
+                    return NotFound(new { message = $"Estudiante no encontrado con el identificador o nombre '{query}'" });
+
+                return Ok(students);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error interno del servidor al buscar el estudiante con '{query}'", error = ex.Message });
+            }
+        }
+
+        // Obtener todos los estudiantes
         [HttpGet("students")]
         public async Task<ActionResult<List<Student>>> GetAllStudents()
         {
@@ -31,50 +50,29 @@ namespace SearchService.Controllers
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+                return StatusCode(500, new { message = "Error interno del servidor al obtener todos los estudiantes", error = ex.Message });
             }
         }
 
-        [HttpGet("student/{query}")]
-        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string query)
-        {
-            try
-            {
-                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
-                
-                if (students == null || students.Count == 0)
-                    return NotFound(new { message = "Estudiante no encontrado" });
-
-                return Ok(students);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
-            }
-        }
-
-        // Buscar estudiantes que poseen una restricción específica (query parameter)
+        // Obtener estudiantes por una restricción específica
         [HttpGet("restriction")]
         public async Task<ActionResult<List<StudentRestrictionResult>>> GetStudentsByRestriction([FromQuery] string restrictionReason)
         {
             try
             {
-                if (string.IsNullOrEmpty(restrictionReason))
-                    return BadRequest("La razón de la restricción es requerida");
-
                 var students = await _mongoDBService.GetStudentsByRestriction(restrictionReason);
                 if (students == null || students.Count == 0)
-                    return NotFound(new { message = "No se encontraron estudiantes con esa restricción" });
+                    return NotFound(new { message = $"No se encontraron estudiantes con la restricción '{restrictionReason}'" });
 
                 return Ok(students);
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+                return StatusCode(500, new { message = $"Error interno del servidor al buscar estudiantes con la restricción '{restrictionReason}'", error = ex.Message });
             }
         }
 
-        // Buscar estudiantes por un rango de notas (query parameters)
+        // Obtener estudiantes por un rango de notas (query parameters)
         [HttpGet("grades")]
         public async Task<ActionResult<List<Student>>> GetStudentsByGradeRange([FromQuery] double min, [FromQuery] double max)
         {
@@ -85,13 +83,13 @@ namespace SearchService.Controllers
 
                 var students = await _mongoDBService.GetStudentsByGradeRange(min, max);
                 if (students == null || students.Count == 0)
-                    return NotFound(new { message = "No se encontraron estudiantes en ese rango de notas" });
+                    return NotFound(new { message = $"No se encontraron estudiantes en ese rango de notas ({min}-{max})" });
 
                 return Ok(students);
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+                return StatusCode(500, new { message = $"Error interno del servidor al buscar estudiantes en el rango de notas {min} - {max}", error = ex.Message });
             }
         }
     }
