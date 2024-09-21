@@ -1,0 +1,71 @@
+# Ignore build outputs
+bin/
+obj/
+out/
+
+# User-specific files
+*.user
+*.rsuser
+*.suo
+*.userosscache
+*.sln.docstates
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# NuGet packages
+*.nupkg
+*.snupkg
+packages/
+.nuget/
+
+# Logs
+*.log
+Logs/
+
+# Visual Studio 2019+
+.vscode/
+.vs/
+
+# Rider
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Application Insights
+ApplicationInsights.config
+
+# Database configuration (don't expose sensitive info)
+appsettings.Development.json
+appsettings.Production.json
+appsettings.Staging.json
+appsettings.Test.json
+
+# Exclude secrets
+secrets.json
+
+# Docker files (if you're using Docker for this project)
+Dockerfile
+docker-compose.yml
+docker-compose.override.yml
+
+# Ignore coverage tool output
+coverage/
+
+# Resharper files
+_ReSharper.Caches/
+
+# MongoDB data files (if you're using local MongoDB for testing)
+*.ns
+*.wt
+*.turtle
+mongod.lock
+WiredTiger*
+journal/
+
+# Ignore folders for IDEs and build artifacts
+.idea/
+.vscode/
+.vs/

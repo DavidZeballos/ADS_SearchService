@@ -17,6 +17,24 @@ namespace SearchService.Controllers
             _mongoDBService = mongoDBService;
         }
 
+        // Buscar todos los estudiantes
+        [HttpGet("students")]
+        public async Task<ActionResult<List<Student>>> GetAllStudents()
+        {
+            try
+            {
+                var students = await _mongoDBService.GetAllStudentsAsync();
+                if (students == null || students.Count == 0)
+                    return NotFound(new { message = "No se encontraron estudiantes" });
+
+                return Ok(students);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = "Error interno del servidor", error = ex.Message });
+            }
+        }
+
         // Buscar todas las calificaciones y restricciones de un estudiante por ID
         [HttpGet("student/{id}")]
         public async Task<ActionResult<Student>> GetStudentById(string id)
