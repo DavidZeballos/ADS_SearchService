@@ -23,33 +23,44 @@ namespace SearchService.Services
             {
                 FilterDefinition<Student> filter;
 
-                // Intentamos parsear el query como un Guid (UUID)
+                // Intentamos parsear el query como un UUID (Guid)
                 if (Guid.TryParse(query, out Guid uuid))
                 {
-                    // Si es un UUID válido, filtramos por el campo Id
+                    // Si es un UUID válido, buscamos por UUID
                     filter = Builders<Student>.Filter.Eq(s => s.Id, uuid);
-                }
-                else
-                {
-                    // Si no es un UUID, buscamos por coincidencias en el nombre usando regex
-                    filter = Builders<Student>.Filter.Regex(s => s.Name, new MongoDB.Bson.BsonRegularExpression(query, "i"));
+
+                    // Intentamos encontrar un estudiante por UUID
+                    var studentsById = await _students.Find(filter).ToListAsync();
+
+                    if (studentsById.Count > 0)
+                    {
+                        return studentsById;  // Retornamos si encontramos coincidencias por UUID
+                    }
+                    else
+                    {
+                        throw new Exception($"No se encontraron estudiantes con el UUID '{query}' en la base de datos.");
+                    }
                 }
 
-                var students = await _students.Find(filter).ToListAsync();
-                if (students == null || students.Count == 0)
+                // Si no es un UUID válido, intentamos buscar por coincidencias en el nombre usando regex
+                filter = Builders<Student>.Filter.Regex(s => s.Name, new BsonRegularExpression(query, "i"));
+
+                var studentsByName = await _students.Find(filter).ToListAsync();
+
+                if (studentsByName.Count == 0)
                 {
-                    throw new Exception($"No se encontraron estudiantes con el identificador '{query}'");
+                    throw new Exception($"No se encontraron estudiantes con el nombre '{query}' en la base de datos.");
                 }
 
-                return students;
+                return studentsByName;  // Retornamos si encontramos coincidencias por nombre
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error fetching student by UUID or name: {query}. Detalle del error: {ex.Message}", ex);
+                throw new Exception($"Error buscando estudiante con UUID o nombre: {query}. Detalle del error: {ex.Message}", ex);
             }
         }
 
-        // Obtener todos los estudiantes
+        // Método para obtener todos los estudiantes
         public async Task<List<Student>> GetAllStudentsAsync()
         {
             try
@@ -63,11 +74,11 @@ namespace SearchService.Services
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching all students. Detalle del error: " + ex.Message, ex);
+                throw new Exception("Error obteniendo todos los estudiantes. Detalle del error: " + ex.Message, ex);
             }
         }
 
-        // Obtener estudiantes por una restricción específica
+        // Obtener estudiantes por restricción
         public async Task<List<StudentRestrictionResult>> GetStudentsByRestriction(string restrictionReason)
         {
             try
@@ -91,7 +102,7 @@ namespace SearchService.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error fetching students by restriction: '{restrictionReason}'. Detalle del error: {ex.Message}", ex);
+                throw new Exception($"Error buscando estudiantes con la restricción: '{restrictionReason}'. Detalle del error: {ex.Message}", ex);
             }
         }
 
@@ -111,7 +122,7 @@ namespace SearchService.Services
             }
             catch (Exception ex)
             {
-                throw new Exception($"Error fetching students by grade range: {min} - {max}. Detalle del error: {ex.Message}", ex);
+                throw new Exception($"Error buscando estudiantes por rango de notas: {min} - {max}. Detalle del error: {ex.Message}", ex);
             }
         }
     }

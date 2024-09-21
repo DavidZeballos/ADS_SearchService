@@ -17,25 +17,6 @@ namespace SearchService.Controllers
             _mongoDBService = mongoDBService;
         }
 
-        // Buscar todas las calificaciones y restricciones de un estudiante por UUID o parte del nombre
-        [HttpGet("student/{query}")]
-        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string query)
-        {
-            try
-            {
-                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
-
-                if (students == null || students.Count == 0)
-                    return NotFound(new { message = $"Estudiante no encontrado con el identificador o nombre '{query}'" });
-
-                return Ok(students);
-            }
-            catch (System.Exception ex)
-            {
-                return StatusCode(500, new { message = $"Error interno del servidor al buscar el estudiante con '{query}'", error = ex.Message });
-            }
-        }
-
         // Obtener todos los estudiantes
         [HttpGet("students")]
         public async Task<ActionResult<List<Student>>> GetAllStudents()
@@ -54,12 +35,33 @@ namespace SearchService.Controllers
             }
         }
 
-        // Obtener estudiantes por una restricción específica
+        // Buscar todas las calificaciones y restricciones de un estudiante por UUID o parte del nombre
+        [HttpGet("student/{query}")]
+        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string query)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(query))
+                    return BadRequest(new { message = "Se requiere un UUID o un nombre para la búsqueda" });
+
+                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
+                return Ok(students);
+            }
+            catch (System.Exception ex)
+            {
+                return StatusCode(500, new { message = $"Error interno del servidor al buscar el estudiante con '{query}'", error = ex.Message });
+            }
+        }
+
+        // Buscar estudiantes que poseen una restricción específica (query parameter)
         [HttpGet("restriction")]
         public async Task<ActionResult<List<StudentRestrictionResult>>> GetStudentsByRestriction([FromQuery] string restrictionReason)
         {
             try
             {
+                if (string.IsNullOrEmpty(restrictionReason))
+                    return BadRequest(new { message = "Se requiere especificar una razón de restricción" });
+
                 var students = await _mongoDBService.GetStudentsByRestriction(restrictionReason);
                 if (students == null || students.Count == 0)
                     return NotFound(new { message = $"No se encontraron estudiantes con la restricción '{restrictionReason}'" });
@@ -72,24 +74,24 @@ namespace SearchService.Controllers
             }
         }
 
-        // Obtener estudiantes por un rango de notas (query parameters)
+        // Buscar estudiantes por un rango de notas (query parameters)
         [HttpGet("grades")]
         public async Task<ActionResult<List<Student>>> GetStudentsByGradeRange([FromQuery] double min, [FromQuery] double max)
         {
             try
             {
                 if (min < 0 || max < 0 || min > max)
-                    return BadRequest("Rango de notas no válido");
+                    return BadRequest(new { message = "Rango de notas no válido" });
 
                 var students = await _mongoDBService.GetStudentsByGradeRange(min, max);
                 if (students == null || students.Count == 0)
-                    return NotFound(new { message = $"No se encontraron estudiantes en ese rango de notas ({min}-{max})" });
+                    return NotFound(new { message = $"No se encontraron estudiantes con notas entre {min} y {max}" });
 
                 return Ok(students);
             }
             catch (System.Exception ex)
             {
-                return StatusCode(500, new { message = $"Error interno del servidor al buscar estudiantes en el rango de notas {min} - {max}", error = ex.Message });
+                return StatusCode(500, new { message = $"Error interno del servidor al buscar estudiantes con notas entre {min} y {max}", error = ex.Message });
             }
         }
     }

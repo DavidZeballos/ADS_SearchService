@@ -4,7 +4,8 @@ using System;
 
 public class Student
 {
-    [BsonId]
+    // Usa Id como el identificador único y elimina el uso de _id
+    [BsonId]  // Esto indica que este será el identificador principal en MongoDB
     [BsonRepresentation(BsonType.String)]
     public Guid Id { get; set; } = Guid.NewGuid();
 
