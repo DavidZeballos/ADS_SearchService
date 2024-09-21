@@ -29,16 +29,29 @@ namespace SearchService.Services
             }
         }
 
-        // Obtener un estudiante por su ObjectId
-        public async Task<Student> GetStudentByIdAsync(Guid id)
+        // Obtener un estudiante por su ObjectId o nombre parcial
+        public async Task<List<Student>> GetStudentByIdOrNameAsync(string query)
         {
             try
             {
-                return await _students.Find(student => student.Id == id).FirstOrDefaultAsync();
+                // Crear filtro para buscar por ObjectId si el query es válido, o por nombre con expresión regular
+                var filter = Builders<Student>.Filter.Empty;
+                if (ObjectId.TryParse(query, out var objectId))
+                {
+                    // Filtro para ObjectId
+                    filter = Builders<Student>.Filter.Eq("_id", objectId);
+                }
+                else
+                {
+                    // Filtro para búsqueda por nombre usando regex (insensible a mayúsculas/minúsculas)
+                    filter = Builders<Student>.Filter.Regex("Name", new BsonRegularExpression(query, "i"));
+                }
+
+                return await _students.Find(filter).ToListAsync();
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching student by ID", ex);
+                throw new Exception("Error fetching student by ID or name", ex);
             }
         }
 

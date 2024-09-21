@@ -35,23 +35,20 @@ namespace SearchService.Controllers
             }
         }
 
-        // Buscar todas las calificaciones y restricciones de un estudiante por ID
-        [HttpGet("student/{id}")]
-        public async Task<ActionResult<Student>> GetStudentById(string id)
+        // Buscar todas las calificaciones y restricciones de un estudiante por ID o por nombre parcial
+        [HttpGet("student/{query}")]
+        public async Task<ActionResult<List<Student>>> GetStudentByIdOrName(string query)
         {
             try
             {
-                if (string.IsNullOrEmpty(id))
-                    return BadRequest("El ID del estudiante es requerido");
+                if (string.IsNullOrEmpty(query))
+                    return BadRequest("El ID o nombre del estudiante es requerido");
 
-                if (!Guid.TryParse(id, out Guid studentId))
-                    return BadRequest("Formato de ID no válido");
-
-                var student = await _mongoDBService.GetStudentByIdAsync(studentId);
-                if (student == null)
+                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
+                if (students == null || students.Count == 0)
                     return NotFound(new { message = "Estudiante no encontrado" });
 
-                return Ok(student);
+                return Ok(students);
             }
             catch (System.Exception ex)
             {
