@@ -1,8 +1,12 @@
+using MongoDB.Bson;
+using MongoDB.Bson.Serialization.Attributes;
+
 public class Student
 {
-    public string Id { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
-    public string Email { get; set; } = string.Empty;
+    [BsonId]
+    [BsonRepresentation(BsonType.ObjectId)]
+    public ObjectId Id { get; set; }  // Cambiar a ObjectId
+     public string Name { get; set; } = string.Empty;
     public List<Grade> Grades { get; set; } = new();
     public List<Restriction> Restrictions { get; set; } = new();
 }
