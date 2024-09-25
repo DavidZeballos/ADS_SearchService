@@ -10,11 +10,11 @@ namespace SearchService.Controllers
     [Route("api/search")]
     public class SearchController : ControllerBase
     {
-        private readonly MongoDBService _mongoDBService;
+        private readonly StudentSearchService _studentSearchService;
 
-        public SearchController(MongoDBService mongoDBService)
+        public SearchController(StudentSearchService studentSearchService)
         {
-            _mongoDBService = mongoDBService;
+            _studentSearchService = studentSearchService;
         }
 
         // Obtener todos los estudiantes
@@ -23,7 +23,7 @@ namespace SearchService.Controllers
         {
             try
             {
-                var students = await _mongoDBService.GetAllStudentsAsync();
+                var students = await _studentSearchService.GetAllStudentsAsync();
                 if (students.Count == 0)
                     return NotFound(new { message = "No se encontraron estudiantes" });
 
@@ -44,7 +44,7 @@ namespace SearchService.Controllers
                 if (string.IsNullOrEmpty(query))
                     return BadRequest(new { message = "Se requiere un UUID o un nombre para la búsqueda" });
 
-                var students = await _mongoDBService.GetStudentByIdOrNameAsync(query);
+                var students = await _studentSearchService.GetStudentByIdOrNameAsync(query);
                 return Ok(students);
             }
             catch (System.Exception ex)
@@ -62,7 +62,7 @@ namespace SearchService.Controllers
                 if (string.IsNullOrEmpty(restrictionReason))
                     return BadRequest(new { message = "Se requiere especificar una razón de restricción" });
 
-                var students = await _mongoDBService.GetStudentsByRestriction(restrictionReason);
+                var students = await _studentSearchService.GetStudentsByRestriction(restrictionReason);
                 if (students == null || students.Count == 0)
                     return NotFound(new { message = $"No se encontraron estudiantes con la restricción '{restrictionReason}'" });
 
@@ -83,7 +83,7 @@ namespace SearchService.Controllers
                 if (min < 0 || max < 0 || min > max)
                     return BadRequest(new { message = "Rango de notas no válido" });
 
-                var students = await _mongoDBService.GetStudentsByGradeRange(min, max);
+                var students = await _studentSearchService.GetStudentsByGradeRange(min, max);
                 if (students == null || students.Count == 0)
                     return NotFound(new { message = $"No se encontraron estudiantes con notas entre {min} y {max}" });
 

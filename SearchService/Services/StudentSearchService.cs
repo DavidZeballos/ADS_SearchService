@@ -5,11 +5,11 @@ using Microsoft.Extensions.Options;
 
 namespace SearchService.Services
 {
-    public class MongoDBService
+    public class StudentSearchService
     {
         private readonly IMongoCollection<Student> _students;
 
-        public MongoDBService(IOptions<MongoDBSettings> settings)
+        public StudentSearchService(IOptions<MongoDBSettings> settings)
         {
             var client = new MongoClient(settings.Value.ConnectionString);
             var database = client.GetDatabase(settings.Value.DatabaseName);

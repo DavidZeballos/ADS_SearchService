@@ -1,4 +1,5 @@
 using SearchService.Services;
+using SearchService.Services.Manage;
 using SearchService.Models;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,7 +9,9 @@ builder.Services.AddControllers(); // Registrar los controladores
 
 // Configurar MongoDB Settings
 builder.Services.Configure<MongoDBSettings>(builder.Configuration.GetSection("MongoDBSettings"));
-builder.Services.AddSingleton<MongoDBService>();
+
+builder.Services.AddSingleton<StudentSearchService>();
+builder.Services.AddSingleton<ManageStudentService>();
 
 // Configurar Swagger para la documentación de la API
 builder.Services.AddEndpointsApiExplorer();

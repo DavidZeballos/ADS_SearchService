@@ -4,10 +4,9 @@ using System;
 
 public class Student
 {
-    // Usa Id como el identificador único y elimina el uso de _id
-    [BsonId]  // Esto indica que este será el identificador principal en MongoDB
+    [BsonId]
     [BsonRepresentation(BsonType.String)]
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public Guid Id { get; set; }
 
     [BsonElement("Name")]
     public string Name { get; set; } = string.Empty;
@@ -26,7 +25,7 @@ public class Grade
 {
     [BsonElement("GradeId")]
     [BsonRepresentation(BsonType.String)]
-    public Guid GradeId { get; set; } = Guid.NewGuid();
+    public Guid GradeId { get; set; }
 
     [BsonElement("Course")]
     public string CourseName { get; set; } = string.Empty;
@@ -45,7 +44,7 @@ public class Restriction
 {
     [BsonElement("RestrictionId")]
     [BsonRepresentation(BsonType.String)]
-    public Guid RestrictionId { get; set; } = Guid.NewGuid();
+    public Guid RestrictionId { get; set; }
 
     [BsonElement("Reason")]
     public string Reason { get; set; } = string.Empty;
@@ -58,7 +57,7 @@ public class StudentRestrictionResult
 {
     [BsonElement("StudentId")]
     [BsonRepresentation(BsonType.String)]
-    public Guid StudentId { get; set; } = Guid.NewGuid();
+    public Guid StudentId { get; set; }
 
     [BsonElement("Name")]
     public string Name { get; set; } = string.Empty;
@@ -68,7 +67,7 @@ public class StudentRestrictionResult
 
     [BsonElement("RestrictionId")]
     [BsonRepresentation(BsonType.String)]
-    public Guid RestrictionId { get; set; } = Guid.NewGuid();
+    public Guid RestrictionId { get; set; }
 
     [BsonElement("RestrictionReason")]
     public string RestrictionReason { get; set; } = string.Empty;
